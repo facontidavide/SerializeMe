@@ -10,36 +10,36 @@ T EndianSwap(T t)
 {
     static_assert( std::is_arithmetic<T>::value, "This function accepts only numeric types");
   #if defined(_MSC_VER)
-    #define FLATBUFFERS_BYTESWAP16 _byteswap_ushort
-    #define FLATBUFFERS_BYTESWAP32 _byteswap_ulong
-    #define FLATBUFFERS_BYTESWAP64 _byteswap_uint64
+    #define DESERIALIZE_ME_BYTESWAP16 _byteswap_ushort
+    #define DESERIALIZE_ME_BYTESWAP32 _byteswap_ulong
+    #define DESERIALIZE_ME_BYTESWAP64 _byteswap_uint64
   #else
     #if defined(__GNUC__) && __GNUC__ * 100 + __GNUC_MINOR__ < 408 && !defined(__clang__)
       // __builtin_bswap16 was missing prior to GCC 4.8.
-      #define FLATBUFFERS_BYTESWAP16(x) \
+      #define DESERIALIZE_ME_BYTESWAP16(x) \
         static_cast<uint16_t>(__builtin_bswap32(static_cast<uint32_t>(x) << 16))
     #else
-      #define FLATBUFFERS_BYTESWAP16 __builtin_bswap16
+      #define DESERIALIZE_ME_BYTESWAP16 __builtin_bswap16
     #endif
-    #define FLATBUFFERS_BYTESWAP32 __builtin_bswap32
-    #define FLATBUFFERS_BYTESWAP64 __builtin_bswap64
+    #define DESERIALIZE_ME_BYTESWAP32 __builtin_bswap32
+    #define DESERIALIZE_ME_BYTESWAP64 __builtin_bswap64
   #endif
   if (sizeof(T) == 1) {   // Compile-time if-then's.
     return t;
   } else if (sizeof(T) == 2) {
     union { T t; uint16_t i; } u;
     u.t = t;
-    u.i = FLATBUFFERS_BYTESWAP16(u.i);
+    u.i = DESERIALIZE_ME_BYTESWAP16(u.i);
     return u.t;
   } else if (sizeof(T) == 4) {
     union { T t; uint32_t i; } u;
     u.t = t;
-    u.i = FLATBUFFERS_BYTESWAP32(u.i);
+    u.i = DESERIALIZE_ME_BYTESWAP32(u.i);
     return u.t;
   } else if (sizeof(T) == 8) {
     union { T t; uint64_t i; } u;
     u.t = t;
-    u.i = FLATBUFFERS_BYTESWAP64(u.i);
+    u.i = DESERIALIZE_ME_BYTESWAP64(u.i);
     return u.t;
   } else {
     std::runtime_error("Problem with IndianSwap");
