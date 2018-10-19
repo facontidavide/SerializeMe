@@ -98,6 +98,34 @@ template<typename T> inline ByteSpan DeserializeFromBuffer( const ByteSpan& buff
     return ByteSpan( buffer.data() + S, buffer.size() - S);
 }
 
+/**
+ * @brief This function looks at the S bytes of the buffer at the position given by offset
+ * and cast them into a numeric value (integer or real number) with type T.
+ *
+ * @param buffer          Input. We look at the position buffer.data()+offset
+ * @param offset          Offset in bytes.
+ * @param dest            Output.
+ * @param swap_endianess  If true, swap the bytes to take into account different endianess.
+ * @return                The new (shifted) offset
+ */
+template<typename T> inline int DeserializeFromBuffer( const ByteSpan& buffer, int offset, 
+                                                      T& dest, bool swap_endianess = false )
+{
+    static_assert( std::is_arithmetic<T>::value, "This function accepts only numeric types");
+    const auto S = sizeof(T);
+    if( offset + S > buffer.size())
+    {
+       std::runtime_error("DeserializeFromBuffer: buffer overflow");
+    }
+    dest = *( reinterpret_cast<T*>( buffer.data()+offset ));
+    if( swap_endianess )
+    {
+        dest = EndianSwap<T>(dest);
+    }
+    return offset + S;
+}
+
+
 template<typename T> inline ByteSpan SerializeIntoBuffer( T value, ByteSpan& buffer, bool swap_endianess = false )
 {
     static_assert( std::is_arithmetic<T>::value, "This function accepts only numeric types");
