@@ -19,7 +19,7 @@ struct MyData{
 
 MyData obj;
 
-// Blob where we want to serialize MyData. Must be resize manually.
+// Blob where we want to serialize MyData. Must be resized manually.
 std::vector<uint8_t> buffer;
 buffer.resize( sizeof(obj.x) + sizeof(obj.y) + sizeof(obj.z) );
 
