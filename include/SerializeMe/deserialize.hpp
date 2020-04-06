@@ -73,27 +73,6 @@ T EndianSwap(T t)
   }
 }
 
-#if defined(__s390x__)
-  #define AM_I_LITTLEENDIAN 0
-#endif // __s390x__
-#if !defined(AM_I_LITTLEENDIAN)
-  #if defined(__GNUC__) || defined(__clang__)
-    #ifdef __BIG_ENDIAN__
-      #define AM_I_LITTLEENDIAN 0
-    #else
-      #define AM_I_LITTLEENDIAN 1
-    #endif // __BIG_ENDIAN__
-  #elif defined(_MSC_VER)
-    #if defined(_M_PPC)
-      #define AM_I_LITTLEENDIAN 0
-    #else
-      #define AM_I_LITTLEENDIAN 1
-    #endif
-  #else
-    #error Unable to determine endianness, define AM_I_LITTLEENDIAN.
-  #endif
-#endif // !defined(AM_I_LITTLEENDIAN)
-
 /**
  * @brief This function looks at the S bytes of the buffer at the position given by offset
  * and cast them into a numeric value (integer or real number) with type T.
