@@ -104,7 +104,7 @@ template <> inline ByteSpan DeserializeFromBuffer( const ByteSpan& buffer, std::
     uint32_t S = 0;
     auto buffer_str = DeserializeFromBuffer(buffer, S);
 
-    if( S > buffer.size())
+    if( S > buffer_str.size())
     {
        throw std::runtime_error("DeserializeFromBuffer: buffer overflow");
     }
