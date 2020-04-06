@@ -21,7 +21,7 @@ template <> size_t BufferSize( const Image& image )
            BufferSize(image.data);
 }
 
-template <typename Function> ByteSpan SerializeIntoBuffer( ByteSpan& buffer, const Image& image )
+template <> ByteSpan SerializeIntoBuffer<Image>( ByteSpan& buffer, const Image& image )
 {
     buffer = SerializeIntoBuffer( buffer, image.width );
     buffer = SerializeIntoBuffer( buffer, image.height );
@@ -30,7 +30,7 @@ template <typename Function> ByteSpan SerializeIntoBuffer( ByteSpan& buffer, con
     return buffer;
 }
 
-template <> ByteSpan DeserializeFromBuffer( const ByteSpan& buffer, Image& image )
+template <> ByteSpan DeserializeFromBuffer<Image>( const ByteSpan& buffer, Image& image )
 {
     ByteSpan data_pt(buffer);
     data_pt = DeserializeFromBuffer( data_pt, image.width );
