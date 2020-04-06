@@ -3,7 +3,7 @@
 C++ utility to serialize/deserialize data from a buffer.
 
 This is not a full serialization library like ProtoBuffers or Flatbuffers, it is just **the most primitive
-building block** that take care of endianess for you.
+building block** that takes care of memcpy and endianess for you.
 
 This is made available onlu for didactic purposes.
 
