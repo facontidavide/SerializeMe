@@ -13,7 +13,6 @@ Typical usage:
 
 ```c++
 struct MyData{
-
   int x;
   float y;
   double z;
