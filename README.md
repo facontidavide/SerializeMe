@@ -3,7 +3,7 @@
 C++ utility to serialize/deserialize data from a buffer.
 
 This is not a full serialization library like ProtoBuffers or Flatbuffers, it is just **the most primitive
-building block** that take care of endianess for you.
+building block** that takes care of memcpy and endianess for you.
 
 It works only with numeric types and `std::string`. You should serialize complex types by hand.
 
@@ -21,7 +21,7 @@ struct MyData{
 
 MyData obj;
 
-// Blob where we want to serialize MyData. Must be resize manually.
+// Blob where we want to serialize MyData. Must be resized manually.
 std::vector<uint8_t> buffer;
 buffer.resize( sizeof(obj.x) + sizeof(obj.y) + sizeof(obj.z) );
 
