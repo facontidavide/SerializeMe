@@ -5,9 +5,9 @@ C++ utility to serialize/deserialize data from a buffer.
 This is not a full serialization library like ProtoBuffers or Flatbuffers, it is just **the most primitive
 building block** that takes care of memcpy and endianess for you.
 
-It works only with numeric types and `std::string` and `std::vector<T>` with numeric types. You should serialize complex types by hand.
+It works only with numerical types, `std::string` and `std::vector<T>` where T is a numerical types. You should serialize complex types by hand.
 
-This is made available onlu for didactic purposes.
+This is made available only for didactic purposes.
 
 Typical usage:
 
@@ -21,25 +21,25 @@ struct MyData{
   std::vector<int> data;
 };
 
-MyData obj;
+MyData in;
 
 // Blob where we want to serialize MyData. Must be resized manually.
 std::vector<uint8_t> buffer;
-buffer.resize( BufferSize(obj.x) +
-               BufferSize(obj.y) +
-               BufferSize(obj.z) +
-               BufferSize(obj.name) +
-               BufferSize(obj.data) );
+buffer.resize( BufferSize(in.x) +
+               BufferSize(in.y) +
+               BufferSize(in.z) +
+               BufferSize(in.name) +
+               BufferSize(in.data) );
 
 //--- Serialize ---
 ByteSpan buffer_ptr(buffer);
 
 // order is important
-buffer_ptr = SerializeIntoBuffer( buffer_ptr, obj.x );
-buffer_ptr = SerializeIntoBuffer( buffer_ptr, obj.y );
-buffer_ptr = SerializeIntoBuffer( buffer_ptr, obj.z );
-buffer_ptr = SerializeIntoBuffer( buffer_ptr, obj.name );
-buffer_ptr = SerializeIntoBuffer( buffer_ptr, obj.data );
+buffer_ptr = SerializeIntoBuffer( buffer_ptr, in.x );
+buffer_ptr = SerializeIntoBuffer( buffer_ptr, in.y );
+buffer_ptr = SerializeIntoBuffer( buffer_ptr, in.z );
+buffer_ptr = SerializeIntoBuffer( buffer_ptr, in.name );
+buffer_ptr = SerializeIntoBuffer( buffer_ptr, in.data );
 
 //--- Deserialize ---
 MyData out;
