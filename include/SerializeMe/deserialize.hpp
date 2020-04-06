@@ -1,9 +1,34 @@
 #ifndef DESERIALIZE_HPP
 #define DESERIALIZE_HPP
 
-#include <DeserializeMe/span.hpp>
+#include <SerializeMe/span.hpp>
 
 using ByteSpan = nonstd::span<uint8_t>;
+
+// The wire format uses a little endian encoding (since that's efficient for
+// the common platforms).
+#if defined(__s390x__)
+  #define FLATBUFFERS_LITTLEENDIAN 0
+#endif // __s390x__
+#if !defined(FLATBUFFERS_LITTLEENDIAN)
+  #if defined(__GNUC__) || defined(__clang__) || defined(__ICCARM__)
+    #if (defined(__BIG_ENDIAN__) || \
+         (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__))
+      #define FLATBUFFERS_LITTLEENDIAN 0
+    #else
+      #define FLATBUFFERS_LITTLEENDIAN 1
+    #endif // __BIG_ENDIAN__
+  #elif defined(_MSC_VER)
+    #if defined(_M_PPC)
+      #define FLATBUFFERS_LITTLEENDIAN 0
+    #else
+      #define FLATBUFFERS_LITTLEENDIAN 1
+    #endif
+  #else
+    #error Unable to determine endianness, define FLATBUFFERS_LITTLEENDIAN.
+  #endif
+#endif // !defined(FLATBUFFERS_LITTLEENDIAN)
+
 
 template<typename T> inline
 T EndianSwap(T t)
@@ -67,37 +92,6 @@ T EndianSwap(T t)
   #endif
 #endif // !defined(AM_I_LITTLEENDIAN)
 
-/** This function looks at the first S bytes of the buffer, where S is size(T),
- * and cast them into a numeric value (integer or real number) with type T.
- *
- * Value is returned in "dest"
- */
-
-/**
- * @brief This function looks at the first S bytes of the buffer, where S is size(T),
- * and cast them into a numeric value (integer or real number) with type T.
- *
- * @param buffer          Input. We are interested only in the initial bytes
- * @param dest            Output.
- * @param swap_endianess  If true, swap the bytes to take into account different endianess.
- * @return                The new buffer, where the first S bytes have been removed
- */
-template<typename T> inline ByteSpan DeserializeFromBuffer( const ByteSpan& buffer, T& dest, bool swap_endianess = false )
-{
-    static_assert( std::is_arithmetic<T>::value, "This function accepts only numeric types");
-    const auto S = sizeof(T);
-    if( S > buffer.size())
-    {
-       std::runtime_error("DeserializeFromBuffer: buffer overflow");
-    }
-    dest = *( reinterpret_cast<T*>( buffer.data() ));
-    if( swap_endianess )
-    {
-        dest = EndianSwap<T>(dest);
-    }
-    return ByteSpan( buffer.data() + S, buffer.size() - S);
-}
-
 /**
  * @brief This function looks at the S bytes of the buffer at the position given by offset
  * and cast them into a numeric value (integer or real number) with type T.
@@ -108,40 +102,37 @@ template<typename T> inline ByteSpan DeserializeFromBuffer( const ByteSpan& buff
  * @param swap_endianess  If true, swap the bytes to take into account different endianess.
  * @return                The new (shifted) offset
  */
-template<typename T> inline int DeserializeFromBuffer( const ByteSpan& buffer, int offset, 
-                                                      T& dest, bool swap_endianess = false )
-{
-    static_assert( std::is_arithmetic<T>::value, "This function accepts only numeric types");
-    const auto S = sizeof(T);
-    if( offset + S > buffer.size())
-    {
-       std::runtime_error("DeserializeFromBuffer: buffer overflow");
-    }
-    dest = *( reinterpret_cast<T*>( buffer.data()+offset ));
-    if( swap_endianess )
-    {
-        dest = EndianSwap<T>(dest);
-    }
-    return offset + S;
-}
-
-
-template<typename T> inline ByteSpan SerializeIntoBuffer( T value, ByteSpan& buffer, bool swap_endianess = false )
+template<typename T> inline ByteSpan DeserializeFromBuffer( const ByteSpan& buffer, T& dest )
 {
     static_assert( std::is_arithmetic<T>::value, "This function accepts only numeric types");
     const auto S = sizeof(T);
     if( S > buffer.size())
     {
-       std::runtime_error("DeserializeFromBuffer: buffer overflow");
+       throw std::runtime_error("DeserializeFromBuffer: buffer overflow");
+    }
+    dest = *( reinterpret_cast<T*>( buffer.data() ));
+
+#if FLATBUFFERS_LITTLEENDIAN == 0
+        dest = EndianSwap<T>(dest);
+#endif
+    return ByteSpan( buffer.data() + S, buffer.size() - S);
+}
+
+
+template<typename T> inline ByteSpan SerializeIntoBuffer( ByteSpan& buffer, const T& value, bool swap_endianess = false )
+{
+    static_assert( std::is_arithmetic<T>::value, "This function accepts only numeric types");
+    const auto S = sizeof(T);
+    if( S > buffer.size())
+    {
+       throw std::runtime_error("DeserializeFromBuffer: buffer overflow");
     }
 
-    if( swap_endianess )
-    {
-        *( reinterpret_cast<T*>( buffer.data() )) = EndianSwap<T>(value);
-    }
-    else{
-        *( reinterpret_cast<T*>( buffer.data() )) = value;
-    }
+#if FLATBUFFERS_LITTLEENDIAN == 0
+    *( reinterpret_cast<T*>( buffer.data() )) = EndianSwap<T>(value);
+#else
+    *( reinterpret_cast<T*>( buffer.data() )) = value;
+#endif
     return ByteSpan( buffer.data() + S, buffer.size() - S);
 }
 
