@@ -5,6 +5,8 @@ C++ utility to serialize/deserialize data from a buffer.
 This is not a full serialization library like ProtoBuffers or Flatbuffers, it is just **the most primitive
 building block** that take care of endianess for you.
 
+It works only with numeric types and `std::string`. You should serialize complex types by hand.
+
 This is made available onlu for didactic purposes.
 
 Typical usage:

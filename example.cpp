@@ -6,6 +6,7 @@
 
 struct Image
 {
+    std::string name;
     int32_t width;
     int32_t height;
     std::vector<uint8_t> data;
@@ -16,6 +17,7 @@ int main()
 
     // le's create an empty image
     Image image;
+    image.name = "pepito";
     image.width = 640;
     image.height = 480;
     image.data.resize( image.width * image.height, 0 );
@@ -33,7 +35,7 @@ int main()
 
     //------ Serialize into the buffer --------------
 
-    // serialize width and height
+    data_pt = SerializeIntoBuffer(data_pt, image.name);
     data_pt = SerializeIntoBuffer( data_pt, image.width );
     data_pt = SerializeIntoBuffer( data_pt, image.height );
     //Before serializing size(), cast it to 4 bytes
@@ -48,6 +50,7 @@ int main()
 
     Image image_out;
 
+    data_pt = DeserializeFromBuffer(data_pt, image_out.name);
     data_pt = DeserializeFromBuffer(data_pt, image_out.width);
     data_pt = DeserializeFromBuffer(data_pt, image_out.height);
     int32_t pixel_count;
@@ -57,7 +60,7 @@ int main()
     memcpy( image.data.data(), data_pt.data(), pixel_count );
 
     //------ Check results -------
-
+    std::cout << "Image name: " <<  image_out.name << std::endl;
     std::cout << "Image width: " <<  image_out.width << std::endl;
     std::cout << "Image height: " <<  image_out.height << std::endl;
     std::cout << "Pixels count: " <<  pixel_count << std::endl;

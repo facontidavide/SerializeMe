@@ -2,6 +2,7 @@
 #define DESERIALIZE_HPP
 
 #include <SerializeMe/span.hpp>
+#include <string.h>
 
 using ByteSpan = nonstd::span<uint8_t>;
 
@@ -118,8 +119,23 @@ template<typename T> inline ByteSpan DeserializeFromBuffer( const ByteSpan& buff
     return ByteSpan( buffer.data() + S, buffer.size() - S);
 }
 
+template <> inline ByteSpan DeserializeFromBuffer( const ByteSpan& buffer, std::string& dest )
+{
+    uint32_t S = 0;
+    auto buffer_str = DeserializeFromBuffer(buffer, S);
 
-template<typename T> inline ByteSpan SerializeIntoBuffer( ByteSpan& buffer, const T& value, bool swap_endianess = false )
+    if( S > buffer.size())
+    {
+       throw std::runtime_error("DeserializeFromBuffer: buffer overflow");
+    }
+
+    dest.assign( reinterpret_cast<const char*>(buffer_str.data()), S );
+
+    return ByteSpan( buffer_str.data() + S, buffer_str.size() - S);
+}
+
+
+template<typename T> inline ByteSpan SerializeIntoBuffer( ByteSpan& buffer, const T& value )
 {
     static_assert( std::is_arithmetic<T>::value, "This function accepts only numeric types");
     const auto S = sizeof(T);
@@ -133,6 +149,21 @@ template<typename T> inline ByteSpan SerializeIntoBuffer( ByteSpan& buffer, cons
 #else
     *( reinterpret_cast<T*>( buffer.data() )) = value;
 #endif
+    return ByteSpan( buffer.data() + S, buffer.size() - S);
+}
+
+template <> inline ByteSpan SerializeIntoBuffer( ByteSpan& buffer, const std::string& str )
+{
+    const uint32_t S = static_cast<uint32_t>(str.size());
+    buffer = SerializeIntoBuffer(buffer, S);
+
+    if( S > buffer.size())
+    {
+       throw std::runtime_error("DeserializeFromBuffer: buffer overflow");
+    }
+
+    memcpy(buffer.data(), str.data(), size_t(S));
+
     return ByteSpan( buffer.data() + S, buffer.size() - S);
 }
 
