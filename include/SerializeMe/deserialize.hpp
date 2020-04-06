@@ -3,6 +3,7 @@
 
 #include <SerializeMe/span.hpp>
 #include <string.h>
+#include  <vector>
 
 using ByteSpan = nonstd::span<uint8_t>;
 
@@ -134,11 +135,40 @@ template <> inline ByteSpan DeserializeFromBuffer( const ByteSpan& buffer, std::
     return ByteSpan( buffer_str.data() + S, buffer_str.size() - S);
 }
 
+template <typename T> inline ByteSpan DeserializeFromBuffer( const ByteSpan& buffer, std::vector<T>& dest )
+{
+    static_assert( std::is_arithmetic<T>::value, "This function accepts only vectors of numeric types");
+
+    uint32_t num_values = 0;
+    ByteSpan buffer_vect = DeserializeFromBuffer(buffer, num_values);
+
+    const size_t S = num_values * sizeof(T);
+
+    if( S > buffer_vect.size())
+    {
+       throw std::runtime_error("DeserializeFromBuffer: buffer overflow");
+    }
+
+    dest.resize(num_values);
+
+    if( FLATBUFFERS_LITTLEENDIAN || sizeof(T) == 1)
+    {
+        memcpy(dest.data(), buffer_vect.data(), S);
+        return ByteSpan( buffer_vect.data() + S, buffer_vect.size() - S);
+    }
+    else{
+        for(size_t i=0; i<num_values; i++ ) {
+            buffer_vect = DeserializeFromBuffer(buffer_vect, dest[i]);
+        }
+        return buffer_vect;
+    }
+}
+
 
 template<typename T> inline ByteSpan SerializeIntoBuffer( ByteSpan& buffer, const T& value )
 {
     static_assert( std::is_arithmetic<T>::value, "This function accepts only numeric types");
-    const auto S = sizeof(T);
+    const size_t S = sizeof(T);
     if( S > buffer.size())
     {
        throw std::runtime_error("DeserializeFromBuffer: buffer overflow");
@@ -162,11 +192,53 @@ template <> inline ByteSpan SerializeIntoBuffer( ByteSpan& buffer, const std::st
        throw std::runtime_error("DeserializeFromBuffer: buffer overflow");
     }
 
-    memcpy(buffer.data(), str.data(), size_t(S));
+    memcpy(buffer.data(), str.data(), S);
 
     return ByteSpan( buffer.data() + S, buffer.size() - S);
 }
 
+template<typename T> inline ByteSpan SerializeIntoBuffer( ByteSpan& buffer, const std::vector<T>& vect )
+{
+    static_assert( std::is_arithmetic<T>::value, "This function accepts only numeric types");
 
+    const uint32_t num_values = static_cast<uint32_t>(vect.size());
+    buffer = SerializeIntoBuffer(buffer, num_values);
+
+    const size_t S = num_values * sizeof(T);
+
+    if( S > buffer.size())
+    {
+       throw std::runtime_error("DeserializeFromBuffer: buffer overflow");
+    }
+
+    if( FLATBUFFERS_LITTLEENDIAN || sizeof(T) == 1)
+    {
+        memcpy(buffer.data(), vect.data(), S);
+        return ByteSpan( buffer.data() + S, buffer.size() - S);
+    }
+    else{
+        for( const T& v: vect ) {
+            buffer = SerializeIntoBuffer(buffer, v);
+        }
+        return buffer;
+    }
+}
+
+template <typename T> inline size_t BufferSize(const T& val)
+{
+    static_assert( std::is_arithmetic<T>::value, "This function accepts only numeric types");
+    return sizeof(T);
+}
+
+template <> inline size_t BufferSize(const std::string& str)
+{
+    return sizeof(uint32_t) + str.size();
+}
+
+template <typename T> inline size_t BufferSize(const std::vector<T>& vect)
+{
+    static_assert( std::is_arithmetic<T>::value, "This function accepts only numeric types");
+    return sizeof(uint32_t) + vect.size() * sizeof(T);
+}
 
 #endif // DESERIALIZE_HPP

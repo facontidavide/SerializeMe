@@ -24,10 +24,10 @@ int main()
 
     // we need a sufficently large buffer
     std::vector<uint8_t> buffer;
-    buffer.resize( sizeof(image.width) +
-                   sizeof(image.height) +
-                   sizeof(int32_t) +
-                   image.data.size() );
+    buffer.resize( BufferSize(image.width) +
+                   BufferSize(image.height) +
+                   BufferSize(image.name) +
+                   BufferSize(image.data) );
 
     // ByteSpan is a convenient wrapper to manipulate a pointer to buffer.data()
     ByteSpan data_pt(buffer);
@@ -35,13 +35,10 @@ int main()
 
     //------ Serialize into the buffer --------------
 
-    data_pt = SerializeIntoBuffer(data_pt, image.name);
     data_pt = SerializeIntoBuffer( data_pt, image.width );
     data_pt = SerializeIntoBuffer( data_pt, image.height );
-    //Before serializing size(), cast it to 4 bytes
-    data_pt = SerializeIntoBuffer( data_pt, static_cast<int32_t>(image.data.size()) );
-    // to serialize the image, we can just memcpy
-    memcpy( data_pt.data(), image.data.data(), image.data.size() );
+    data_pt = SerializeIntoBuffer( data_pt, image.data );
+    data_pt = SerializeIntoBuffer(data_pt, image.name);
 
     //------ Deserialize from buffer to image --------------
 
@@ -50,20 +47,16 @@ int main()
 
     Image image_out;
 
-    data_pt = DeserializeFromBuffer(data_pt, image_out.name);
     data_pt = DeserializeFromBuffer(data_pt, image_out.width);
     data_pt = DeserializeFromBuffer(data_pt, image_out.height);
-    int32_t pixel_count;
-    data_pt = DeserializeFromBuffer(data_pt, pixel_count);
-    image.data.resize( size_t(pixel_count) );
-    //memcpy again
-    memcpy( image.data.data(), data_pt.data(), pixel_count );
+    data_pt = DeserializeFromBuffer(data_pt, image_out.data);
+    data_pt = DeserializeFromBuffer(data_pt, image_out.name);
 
     //------ Check results -------
     std::cout << "Image name: " <<  image_out.name << std::endl;
     std::cout << "Image width: " <<  image_out.width << std::endl;
     std::cout << "Image height: " <<  image_out.height << std::endl;
-    std::cout << "Pixels count: " <<  pixel_count << std::endl;
+    std::cout << "Pixels count: " <<  image_out.data.size() << std::endl;
 
     return 0;
 }
