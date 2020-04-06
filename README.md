@@ -5,7 +5,7 @@ C++ utility to serialize/deserialize data from a buffer.
 This is not a full serialization library like ProtoBuffers or Flatbuffers, it is just **the most primitive
 building block** that takes care of memcpy and endianess for you.
 
-It works only with numerical types, `std::string` and `std::vector<T>` where T is a numerical types. You should serialize complex types by hand.
+It works only with numerical types, `std::string` and `std::vector<T>` where T is a numerical type. You should serialize complex types by hand.
 
 This is made available only for didactic purposes.
 
@@ -50,3 +50,8 @@ buffer_ptr = DeserializeFromBuffer( buffer_ptr, out.y );
 buffer_ptr = DeserializeFromBuffer( buffer_ptr, out.z );
 buffer_ptr = DeserializeFromBuffer( buffer_ptr, out.name );
 buffer_ptr = DeserializeFromBuffer( buffer_ptr, out.data );
+```
+
+You may also add types creating manually your own template specialization as shown in **example.cpp**.
+
+

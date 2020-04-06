@@ -12,9 +12,37 @@ struct Image
     std::vector<uint8_t> data;
 };
 
+
+template <> size_t BufferSize( const Image& image )
+{
+    return BufferSize(image.width) +
+           BufferSize(image.height) +
+           BufferSize(image.name) +
+           BufferSize(image.data);
+}
+
+template <typename Function> ByteSpan SerializeIntoBuffer( ByteSpan& buffer, const Image& image )
+{
+    buffer = SerializeIntoBuffer( buffer, image.width );
+    buffer = SerializeIntoBuffer( buffer, image.height );
+    buffer = SerializeIntoBuffer( buffer, image.data );
+    buffer = SerializeIntoBuffer( buffer, image.name );
+    return buffer;
+}
+
+template <> ByteSpan DeserializeFromBuffer( const ByteSpan& buffer, Image& image )
+{
+    ByteSpan data_pt(buffer);
+    data_pt = DeserializeFromBuffer( data_pt, image.width );
+    data_pt = DeserializeFromBuffer( data_pt, image.height );
+    data_pt = DeserializeFromBuffer( data_pt, image.data );
+    data_pt = DeserializeFromBuffer(data_pt, image.name);
+    return data_pt;
+}
+
+
 int main()
 {
-
     // le's create an empty image
     Image image;
     image.name = "pepito";
@@ -22,35 +50,17 @@ int main()
     image.height = 480;
     image.data.resize( image.width * image.height, 0 );
 
-    // we need a sufficently large buffer
+    //--- This is the serialized buffer. Allocate memory manually -----
     std::vector<uint8_t> buffer;
-    buffer.resize( BufferSize(image.width) +
-                   BufferSize(image.height) +
-                   BufferSize(image.name) +
-                   BufferSize(image.data) );
+    buffer.resize( BufferSize(image) );
 
-    // ByteSpan is a convenient wrapper to manipulate a pointer to buffer.data()
+    //------ Serialize into the buffer -----
     ByteSpan data_pt(buffer);
+    SerializeIntoBuffer( data_pt, image );
 
-
-    //------ Serialize into the buffer --------------
-
-    data_pt = SerializeIntoBuffer( data_pt, image.width );
-    data_pt = SerializeIntoBuffer( data_pt, image.height );
-    data_pt = SerializeIntoBuffer( data_pt, image.data );
-    data_pt = SerializeIntoBuffer(data_pt, image.name);
-
-    //------ Deserialize from buffer to image --------------
-
-    //reset the Span;
-    data_pt = ByteSpan(buffer);
-
+    //------ Deserialize from buffer to image -----
     Image image_out;
-
-    data_pt = DeserializeFromBuffer(data_pt, image_out.width);
-    data_pt = DeserializeFromBuffer(data_pt, image_out.height);
-    data_pt = DeserializeFromBuffer(data_pt, image_out.data);
-    data_pt = DeserializeFromBuffer(data_pt, image_out.name);
+    DeserializeFromBuffer( buffer, image_out);
 
     //------ Check results -------
     std::cout << "Image name: " <<  image_out.name << std::endl;
