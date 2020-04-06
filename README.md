@@ -25,7 +25,11 @@ MyData obj;
 
 // Blob where we want to serialize MyData. Must be resized manually.
 std::vector<uint8_t> buffer;
-buffer.resize( sizeof(obj.x) + sizeof(obj.y) + sizeof(obj.z) );
+buffer.resize( BufferSize(obj.x) +
+               BufferSize(obj.y) +
+               BufferSize(obj.z) +
+               BufferSize(obj.name) +
+               BufferSize(obj.data) );
 
 //--- Serialize ---
 ByteSpan buffer_ptr(buffer);
