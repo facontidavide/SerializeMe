@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <vector>
 #include <string.h>
-#include <SerializeMe/deserialize.hpp>
+#include <SerializeMe/SerializeMe.hpp>
 
 struct Image
 {
@@ -12,7 +12,8 @@ struct Image
     std::vector<uint8_t> data;
 };
 
-
+namespace SerializeMe
+{
 template <> size_t BufferSize( const Image& image )
 {
     return BufferSize(image.width) +
@@ -21,25 +22,22 @@ template <> size_t BufferSize( const Image& image )
            BufferSize(image.data);
 }
 
-template <> ByteSpan SerializeIntoBuffer<Image>( ByteSpan& buffer, const Image& image )
+template <> void SerializeIntoBuffer<Image>(ByteSpan& buffer, const Image& image )
 {
-    buffer = SerializeIntoBuffer( buffer, image.width );
-    buffer = SerializeIntoBuffer( buffer, image.height );
-    buffer = SerializeIntoBuffer( buffer, image.data );
-    buffer = SerializeIntoBuffer( buffer, image.name );
-    return buffer;
+    SerializeIntoBuffer( buffer, image.width );
+    SerializeIntoBuffer( buffer, image.height );
+    SerializeIntoBuffer( buffer, image.data );
+    SerializeIntoBuffer( buffer, image.name );
 }
 
-template <> ByteSpan DeserializeFromBuffer<Image>( const ByteSpan& buffer, Image& image )
+template <> void DeserializeFromBuffer<Image>(ByteSpan& buffer, Image& image )
 {
-    ByteSpan data_pt(buffer);
-    data_pt = DeserializeFromBuffer( data_pt, image.width );
-    data_pt = DeserializeFromBuffer( data_pt, image.height );
-    data_pt = DeserializeFromBuffer( data_pt, image.data );
-    data_pt = DeserializeFromBuffer(data_pt, image.name);
-    return data_pt;
+    DeserializeFromBuffer( buffer, image.width );
+    DeserializeFromBuffer( buffer, image.height );
+    DeserializeFromBuffer( buffer, image.data );
+    DeserializeFromBuffer( buffer, image.name);
 }
-
+}
 
 int main()
 {
@@ -52,15 +50,16 @@ int main()
 
     //--- This is the serialized buffer. Allocate memory manually -----
     std::vector<uint8_t> buffer;
-    buffer.resize( BufferSize(image) );
+    buffer.resize( SerializeMe::BufferSize(image) );
 
     //------ Serialize into the buffer -----
-    ByteSpan data_pt(buffer);
-    SerializeIntoBuffer( data_pt, image );
+    SerializeMe::ByteSpan serialize_ptr(buffer);
+    SerializeMe::SerializeIntoBuffer( serialize_ptr, image );
 
     //------ Deserialize from buffer to image -----
     Image image_out;
-    DeserializeFromBuffer( buffer, image_out);
+    SerializeMe::ByteSpan deserialize_ptr(buffer);
+    SerializeMe::DeserializeFromBuffer(deserialize_ptr, image_out);
 
     //------ Check results -------
     std::cout << "Image name: " <<  image_out.name << std::endl;
