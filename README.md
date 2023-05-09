@@ -31,25 +31,25 @@ buffer.resize( BufferSize(in.x) +
                BufferSize(in.data) );
 
 //--- Serialize ---
-ByteSpan buffer_ptr(buffer);
+ByteSpan write_ptr(buffer);
 
 // order is important
-buffer_ptr = SerializeIntoBuffer( buffer_ptr, in.x );
-buffer_ptr = SerializeIntoBuffer( buffer_ptr, in.y );
-buffer_ptr = SerializeIntoBuffer( buffer_ptr, in.z );
-buffer_ptr = SerializeIntoBuffer( buffer_ptr, in.name );
-buffer_ptr = SerializeIntoBuffer( buffer_ptr, in.data );
+SerializeIntoBuffer( write_ptr, in.x );
+SerializeIntoBuffer( write_ptr, in.y );
+SerializeIntoBuffer( write_ptr, in.z );
+SerializeIntoBuffer( write_ptr, in.name );
+SerializeIntoBuffer( write_ptr, in.data );
 
 //--- Deserialize ---
 MyData out;
-buffer_ptr = ByteSpan(buffer); // reset the span
+ByteSpan read_ptr(buffer);
 
 // order is important
-buffer_ptr = DeserializeFromBuffer( buffer_ptr, out.x );
-buffer_ptr = DeserializeFromBuffer( buffer_ptr, out.y );
-buffer_ptr = DeserializeFromBuffer( buffer_ptr, out.z );
-buffer_ptr = DeserializeFromBuffer( buffer_ptr, out.name );
-buffer_ptr = DeserializeFromBuffer( buffer_ptr, out.data );
+DeserializeFromBuffer( read_ptr, out.x );
+DeserializeFromBuffer( read_ptr, out.y );
+DeserializeFromBuffer( read_ptr, out.z );
+DeserializeFromBuffer( read_ptr, out.name );
+DeserializeFromBuffer( read_ptr, out.data );
 ```
 
 You may also add types creating manually your own template specialization as shown in **example.cpp**.
