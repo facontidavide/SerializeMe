@@ -12,46 +12,61 @@ This is made available only for didactic purposes.
 Typical usage:
 
 ```c++
-struct MyData{
-  int x;
-  float y;
+// Given these structures
+
+struct Point3D
+{
+  double x;
+  double y;
   double z;
+}
+
+struct MyData{
+  Point3D point;
   std::string name;
   std::vector<int> data;
 };
 
-MyData in;
+// You must define these template specializations
+namespace SerializeMe
+{
+template <> struct Serializer<Point3D>
+{
+  template <class Operator> void operator()(Point3D& obj, Operator& op)
+  {
+    op(obj.x);
+    op(obj.y);
+    op(obj.z);
+  };
+};
 
-// Blob where we want to serialize MyData. Must be resized manually.
+template <> struct Serializer<MyData>
+{
+  template <class Operator> void operator()(MyData& obj, Operator& op)
+  {
+    op(obj.point);
+    op(obj.name);
+    op(obj.data);
+  };
+};
+} // end namespace SerializeMe
+
+//-------- Usage: ----------------
+
+using namespace SerializeMe;
+MyData data_in;
+
+// Blob where we want to serialize MyData. Buffer MUST be resized manually.
 std::vector<uint8_t> buffer;
-buffer.resize( BufferSize(in.x) +
-               BufferSize(in.y) +
-               BufferSize(in.z) +
-               BufferSize(in.name) +
-               BufferSize(in.data) );
+buffer.resize( BufferSize(data_in) );
 
 //--- Serialize ---
-ByteSpan write_ptr(buffer);
-
-// order is important
-SerializeIntoBuffer( write_ptr, in.x );
-SerializeIntoBuffer( write_ptr, in.y );
-SerializeIntoBuffer( write_ptr, in.z );
-SerializeIntoBuffer( write_ptr, in.name );
-SerializeIntoBuffer( write_ptr, in.data );
+SpanBytes write_view(buffer);
+SerializeIntoBuffer( write_view, data_in );
 
 //--- Deserialize ---
-MyData out;
-ByteSpan read_ptr(buffer);
-
-// order is important
-DeserializeFromBuffer( read_ptr, out.x );
-DeserializeFromBuffer( read_ptr, out.y );
-DeserializeFromBuffer( read_ptr, out.z );
-DeserializeFromBuffer( read_ptr, out.name );
-DeserializeFromBuffer( read_ptr, out.data );
+MyData data_out;
+SpanBytesConst read_view(buffer);
+DeserializeFromBuffer( read_view, data_out );
 ```
-
-You may also add types creating manually your own template specialization as shown in **example.cpp**.
-
 
