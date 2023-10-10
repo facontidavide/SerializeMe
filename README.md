@@ -1,11 +1,6 @@
 # SerializeMe
 
-C++ utility to serialize/deserialize data from a buffer.
-
-This is not a full serialization library like ProtoBuffers or Flatbuffers, it is just **the most primitive
-building block** that takes care of memcpy and endianess for you.
-
-It works only with numerical types, `std::string` and `std::vector<T>` where T is a numerical type. You should serialize complex types by hand.
+C++ utility to serialize/deserialize data from a buffer, in a non-intrusive way.
 
 This is made available only for didactic purposes.
 
@@ -70,3 +65,7 @@ SpanBytesConst read_view(buffer);
 DeserializeFromBuffer( read_view, data_out );
 ```
 
+## Known Limitations, TODO
+
+- Not expected to work correctly when serializing play old C arrays (example: `int values[5]`).
+  Should work correctly with usual **std** containers such as `std::vector`, `std::array`, `std::list` and `std::deque`.
