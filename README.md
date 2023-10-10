@@ -67,5 +67,6 @@ DeserializeFromBuffer( read_view, data_out );
 
 ## Known Limitations, TODO
 
-- Not expected to work correctly when serializing play old C arrays (example: `int values[5]`).
-  Should work correctly with usual **std** containers such as `std::vector`, `std::array`, `std::list` and `std::deque`.
+Not expected to work correctly when serializing play old C arrays (example: `int values[5]`).
+
+Should work correctly with usual **std** containers such as `std::vector`, `std::array`, `std::list` and `std::deque`.
